@@ -1,23 +1,22 @@
-from pydantic import ConfigDict, BaseModel, Field, EmailStr, root_validator
+from pydantic import ConfigDict, BaseModel
 from bson import ObjectId
-from typing import Optional, List, Dict, Any
-from typing_extensions import Annotated
-from pydantic.functional_validators import BeforeValidator
+from typing import Optional, List, Any
 from datetime import datetime
-from Enum import ProjectStatusEnum 
+
 
 class DailyWorkLogExtraField(BaseModel):
-    projectExtraFiled:ObjectId
-    value:Optional[Any] = None
+    projectExtraFiled: ObjectId
+    value: Optional[Any] = None
+
 
 class DailyWorkLog(BaseModel):
     projectId: ObjectId
-    employeeId:str
-    employeeName:str
-    date:datetime
-    workIteams:int
-    workHours:str
-    extraFields : List[DailyWorkLogExtraField] = []
+    employeeId: str
+    employeeName: str
+    date: datetime
+    workIteams: int
+    workHours: str
+    customfields: List[DailyWorkLogExtraField] = []
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
