@@ -49,11 +49,14 @@ async def create(process: Process = Body(...)):
     "/get_pagination",
     response_description="List all process"
 )
-async def list_pagination_invoice(page: int = 1):
+async def list_pagination_invoice(page: int = 1, search: str = ''):
     try:
         skip, limit = get_skip_and_limit(page)
         totalRecords = await process_collection.count_documents({})
-        results = await process_collection.find().skip(skip).limit(limit).to_list(limit)
+        options = {}
+        if search != '':
+            options['process'] = {"$regex": search, '$options': 'i'}
+        results = await process_collection.find(options).skip(skip).limit(limit).to_list(limit)
         for result in results:
             result["_id"] = str(result["_id"])
         return {

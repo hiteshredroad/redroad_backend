@@ -52,16 +52,15 @@ async def create(billingType: BillingType = Body(...)):
     "/get_pagination",
     response_description="List all billing types"
 )
-async def list_pagination_invoice(page: int = 1):
+async def list_pagination_invoice(page: int = 1, search: str = ''):
     try:
         skip, limit = get_skip_and_limit(page)
         totalRecords = await billingType_collection.count_documents({})
-        results = (await billingType_collection
-                   .find()
-                   .skip(skip)
-                   .limit(limit)
-                   .to_list(limit)
-                   )
+        options = {}
+        if search != '':
+            options['billingType'] = {"$regex": search, '$options': 'i'}
+        results = await billingType_collection.find(options).skip(skip).limit(limit).to_list(limit)
+                   
         for result in results:
             result["_id"] = str(result["_id"])
         return {
