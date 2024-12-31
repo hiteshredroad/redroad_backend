@@ -1,15 +1,10 @@
 
-import os
-from fastapi import APIRouter, Body, HTTPException, status, Response, Cookie, Depends, BackgroundTasks, Request
+from fastapi import APIRouter, Body, HTTPException, status, Depends
 from utils import get_current_user, convert_objectid_to_str, get_skip_and_limit
-from bson import ObjectId
 from models.ProcessModel import Process
-from datetime import datetime, timedelta, timezone
 from database import invoice as db
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
-
-
 
 
 process_collection = db.get_collection("processes")
@@ -29,10 +24,17 @@ router = APIRouter(dependencies=[
 async def create(process: Process = Body(...)):
     try:
         new_process = await process_collection.insert_one(process.model_dump())
-        new_process_data = await process_collection.find_one({"_id": new_process.inserted_id})
+        new_process_data = await (process_collection
+                                  .find_one(
+                                      {"_id": new_process.inserted_id}
+                                  ))
         new_process_data = convert_objectid_to_str(new_process_data)
         new_process_data["_id"] = str(new_process_data["_id"])
-        return {"success": True, "message": "Process created successfully", "data": new_process_data}
+        return {
+            "success": True,
+            "message": "Process created successfully",
+            "data": new_process_data
+        }
     except DuplicateKeyError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -56,7 +58,12 @@ async def list_pagination_invoice(page: int = 1, search: str = ''):
         options = {}
         if search != '':
             options['process'] = {"$regex": search, '$options': 'i'}
-        results = await process_collection.find(options).skip(skip).limit(limit).to_list(limit)
+        results = await (process_collection
+                         .find(options)
+                         .skip(skip)
+                         .limit(limit)
+                         .to_list(limit)
+                         )
         for result in results:
             result["_id"] = str(result["_id"])
         return {
