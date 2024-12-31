@@ -6,6 +6,7 @@ from models.ProjectExtraFiledModel import ProjectExtraField
 from database import invoice as db
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
+import json
 
 
 project_collection = db.get_collection("projects")
@@ -21,7 +22,7 @@ router = APIRouter(dependencies=[
     client lof process and series(1,2,3....) """
 
 
-async def getUniqueProductId(project_data):
+async def getUniqueProductId():
     try:
         projectUniqueId = ""
         project = await (project_collection.find()
@@ -32,14 +33,10 @@ async def getUniqueProductId(project_data):
         if len(project) == 1:
             projectDBId = project[0]['id']
             projectDBId = projectDBId.split("-")
-            count = projectDBId[3]+1
-            projectUniqueId = (project_data['client'] +
-                               "-" + project_data['lof_process'] +
-                               "-" + count)
+            count = str(int(projectDBId[1])+1).zfill(5)
+            projectUniqueId = "PROJ-" + count
         elif len(project) == 0:
-            projectUniqueId = (project_data['client'] +
-                               "-" + project_data['lof_process'] +
-                               "-" + 1)
+            projectUniqueId = "PROJ-" + "00001"
 
         return projectUniqueId
     except Exception as e:
@@ -58,7 +55,7 @@ async def create(projectRequest: ProjectRequest = Body(...)):
     try:
         customFields = projectRequest.model_dump().get('customfields')
         project_data = projectRequest.model_dump(exclude="customfields")
-        projectId = await getUniqueProductId(project_data)
+        projectId = await getUniqueProductId()
 
         if projectId == "":
             raise HTTPException(
@@ -110,12 +107,25 @@ async def create(projectRequest: ProjectRequest = Body(...)):
     "/get_pagination",
     response_description="List all project"
 )
-async def list_pagination_project(page: int = 1):
+async def list_pagination_project(
+        page: int = 1,
+        search: str = "[]"):
     try:
         skip, limit = get_skip_and_limit(page)
         totalRecords = await project_collection.count_documents({})
+        options = {}
+        search = json.loads(search)
+        if len(search) > 0:
+            for searchKey in search:
+                print("searchKey", searchKey)
+                if searchKey['value'] and searchKey['value'] != "":
+                    options[searchKey['field']] = {
+                        "$regex": str(searchKey['value']),
+                        '$options': 'i'
+                    }
+
         results = await (project_collection
-                         .find()
+                         .find(options)
                          .skip(skip)
                          .limit(limit)
                          .to_list(limit)
@@ -124,7 +134,7 @@ async def list_pagination_project(page: int = 1):
             result["_id"] = str(result["_id"])
         return {
             "success": True,
-            "message": "Process fetched successfully",
+            "message": "Project fetched successfully",
             "data": results,
             "pagination": {
                 "page": page,

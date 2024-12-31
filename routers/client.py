@@ -51,7 +51,7 @@ async def create(client: Client = Body(...)):
     "/get_pagination",
     response_description="List all client"
 )
-async def list_pagination_invoice(page: int = 1):
+async def list_pagination_client(page: int = 1):
     try:
         skip, limit = get_skip_and_limit(page)
         totalRecords = await client_collection.count_documents({})
