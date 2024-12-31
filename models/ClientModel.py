@@ -1,9 +1,8 @@
-from pydantic import ConfigDict, BaseModel, Field, EmailStr, root_validator
+from pydantic import ConfigDict, BaseModel, Field
 from bson import ObjectId
-from typing import Optional, List
-from typing_extensions import Annotated
-from pydantic.functional_validators import BeforeValidator
+from typing import Optional
 from datetime import datetime
+
 
 class Client(BaseModel):
     client: str
@@ -17,8 +16,3 @@ class Client(BaseModel):
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
     )
-    
-
-
-class ClientCollection(BaseModel):
-    data: List[Client]

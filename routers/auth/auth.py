@@ -1,10 +1,8 @@
-import os
 from fastapi import APIRouter, HTTPException, status, Response, Cookie, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from .frappeclient import FrappeClient
-from jose import JWTError, jwt
+from jose import jwt
 from datetime import datetime, timedelta, timezone
 import requests
 from decouple import config
@@ -31,7 +29,8 @@ class LoginData(BaseModel):
 
 
 @router.post("/", response_description="Auth")
-async def auth(response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
+async def auth(response: Response,
+               form_data: OAuth2PasswordRequestForm = Depends()):
     try:
         await client.login(form_data.username, form_data.password)
 
@@ -51,7 +50,8 @@ async def auth(response: Response, form_data: OAuth2PasswordRequestForm = Depend
     except requests.exceptions.ConnectionError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unable to connect to Frappe server. Please try again later."
+            detail="""Unable to connect to Frappe
+            server. Please try again later."""
         )
     try:
         user = client.get_doc('User', form_data.username)
@@ -82,7 +82,11 @@ async def auth(response: Response, form_data: OAuth2PasswordRequestForm = Depend
             path="/",  # This can be adjusted as needed
         )
         del session_data["_id"]
-        return {"success": True, "message": "Login Successfull", "data": session_data}
+        return {
+            "success": True,
+            "message": "Login Successfull",
+            "data": session_data
+        }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -91,7 +95,11 @@ async def auth(response: Response, form_data: OAuth2PasswordRequestForm = Depend
 
 
 @router.post("/logout", response_description="logout")
-async def logout(response: Response, session_id: str = Cookie(None), current_user: dict = Depends(get_current_user)):
+async def logout(
+    response: Response,
+    session_id: str = Cookie(None),
+    current_user: dict = Depends(get_current_user)
+):
     try:
         if session_id:
             await session_collection.delete_one({"session_id": session_id})
@@ -111,12 +119,19 @@ async def logout(response: Response, session_id: str = Cookie(None), current_use
 
 
 @router.get("/session", response_description="session")
-async def getSesison(session_id: str = Cookie(None), current_user: dict = Depends(get_current_user)):
+async def getSesison(
+        session_id: str = Cookie(None),
+        current_user: dict = Depends(get_current_user)):
     try:
         if session_id:
-            sessions = await session_collection.find_one({"session_id": session_id})
+            sessions = await (session_collection
+                              .find_one({"session_id": session_id}))
             del sessions["_id"]
-            return {"data": sessions, "message": "Session get successfully", "success": True}
+            return {
+                "data": sessions,
+                "message": "Session get successfully",
+                "success": True
+            }
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
