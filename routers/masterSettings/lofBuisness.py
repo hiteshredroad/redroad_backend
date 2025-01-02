@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Body, HTTPException, status, Depends
 from utils import get_current_user, convert_objectid_to_str, get_skip_and_limit
-from models.BillingTypesModel import BillingType
+from models.LofBuisnessModel import LofBuisness
 from database import invoice as db
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
 
 
-billingType_collection = db.get_collection("billingTypes")
-billingType_collection.create_index([("billingType", ASCENDING)], unique=True)
+lofBuisness_collection = db.get_collection("lofBuisnesses")
+lofBuisness_collection.create_index([("lofBuisness", ASCENDING)], unique=True)
 
 router = APIRouter(dependencies=[
     Depends(get_current_user)
@@ -16,31 +16,31 @@ router = APIRouter(dependencies=[
 
 @router.post(
     "/",
-    response_description="Add new billing",
+    response_description="Add new LofBuisness",
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def create(billingType: BillingType = Body(...)):
+async def create(lofBuisness: LofBuisness = Body(...)):
     try:
-        print(billingType.model_dump(exclude=[id]))
-        new_billingType = (await billingType_collection
-                           .insert_one(billingType
+        print(lofBuisness.model_dump(exclude=[id]))
+        new_lofBuisness = (await lofBuisness_collection
+                           .insert_one(lofBuisness
                                        .model_dump(exclude=[id])
                                        ))
-        new_billingType_data = (await billingType_collection
-                                .find_one({"_id": new_billingType.inserted_id}
+        new_lofBuisness_data = (await lofBuisness_collection
+                                .find_one({"_id": new_lofBuisness.inserted_id}
                                           ))
-        new_billingType_data = convert_objectid_to_str(new_billingType_data)
-        new_billingType_data["_id"] = str(new_billingType_data["_id"])
+        new_lofBuisness_data = convert_objectid_to_str(new_lofBuisness_data)
+        new_lofBuisness_data["_id"] = str(new_lofBuisness_data["_id"])
         return {
             "success": True,
             "message": "Billing Types created successfully",
-            "data": new_billingType_data
+            "data": new_lofBuisness_data
         }
     except DuplicateKeyError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"{billingType.dict().get('billingType')} already exist."
+            detail=f"{lofBuisness.dict().get('lofBuisness')} already exist."
         )
     except Exception as e:
         raise HTTPException(
@@ -56,17 +56,17 @@ async def create(billingType: BillingType = Body(...)):
 async def list_pagination_invoice(page: int = 1, search: str = ''):
     try:
         skip, limit = get_skip_and_limit(page)
-        totalRecords = await billingType_collection.count_documents({})
+        totalRecords = await lofBuisness_collection.count_documents({})
         options = {}
         if search != '':
-            options['billingType'] = {"$regex": search, '$options': 'i'}
-        results = await billingType_collection.find(options).skip(skip).limit(limit).to_list(limit)
+            options['lofbuisness'] = {"$regex": search, '$options': 'i'}
+        results = await lofBuisness_collection.find(options).skip(skip).limit(limit).to_list(limit)
                    
         for result in results:
             result["_id"] = str(result["_id"])
         return {
             "success": True,
-            "message": "Billing Types fetched successfully",
+            "message": "Lof Buisness fetched successfully",
             "data": results,
             "pagination": {
                 "page": page,

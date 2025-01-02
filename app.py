@@ -12,6 +12,7 @@ from routers.masterSettings.process import router as process_router
 from routers.client import router as client_router
 from routers.project import router as project_router
 from routers.dailyworklog import router as dailyworklog_router
+from routers.masterSettings.lofBuisness import router as lofbuisness_router
 from datetime import datetime, timezone
 import time
 import logging
@@ -108,3 +109,4 @@ app.include_router(client_router, prefix="/api/client", tags=["client"])
 app.include_router(process_router, prefix="/api/process", tags=["process"])
 app.include_router(project_router, prefix="/api/project", tags=["project"])
 app.include_router(dailyworklog_router, prefix="/api/daily-work-log", tags=["daily-work-log"])
+app.include_router(lofbuisness_router, prefix="/api/lof-buisness", tags=["lof-buisness"])
