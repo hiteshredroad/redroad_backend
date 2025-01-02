@@ -51,7 +51,7 @@ async def create(department: Department = Body(...)):
     "/get_pagination",
     response_description="List all department"
 )
-async def list_pagination_invoice(page: int = 1, search: str = ''):
+async def list_pagination_department(page: int = 1, search: str = ''):
     try:
         skip, limit = get_skip_and_limit(page)
         totalRecords = await department_collection.count_documents({})

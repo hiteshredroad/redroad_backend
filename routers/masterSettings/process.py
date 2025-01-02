@@ -51,7 +51,7 @@ async def create(process: Process = Body(...)):
     "/get_pagination",
     response_description="List all process"
 )
-async def list_pagination_invoice(page: int = 1, search: str = ''):
+async def list_pagination_process(page: int = 1):
     try:
         skip, limit = get_skip_and_limit(page)
         totalRecords = await process_collection.count_documents({})

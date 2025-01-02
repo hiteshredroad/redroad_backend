@@ -53,7 +53,7 @@ async def create(billingType: BillingType = Body(...)):
     "/get_pagination",
     response_description="List all billing types"
 )
-async def list_pagination_invoice(page: int = 1, search: str = ''):
+async def list_pagination_billingType(page: int = 1):
     try:
         skip, limit = get_skip_and_limit(page)
         totalRecords = await billingType_collection.count_documents({})
